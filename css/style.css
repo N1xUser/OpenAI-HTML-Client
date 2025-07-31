@@ -47,12 +47,17 @@
 }
 
 /* === BASE === */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Keep overflow hidden here */
+}
+
 body {
-	font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-	background: var(--bg-primary);
-	color: var(--text-primary);
-	height: 100vh;
-	overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 /* === LAYOUT === */
@@ -60,9 +65,9 @@ body {
 
 /* === SIDEBAR === */
 .app-container {
-	display: flex;
-	height: 100vh;
-	position: relative;
+    display: flex;
+    height: 100%;
+    position: relative;
 }
 
 .sidebar {
@@ -102,12 +107,13 @@ body {
 }
 
 .main-content {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	background: var(--bg-primary);
-	min-width: 0; /* Prevents flexbox overflow */
-	position: relative;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-primary);
+    min-width: 0; /* Prevents flexbox overflow */
+    min-height: 0; /* ADD THIS LINE */
+    position: relative;
 }
 .sessions-section {
 	flex: 1;
@@ -506,7 +512,6 @@ body {
 	font-weight: bold;
 }
 
-/* === CHAT === */
 .chat-container {
     flex: 1;
     display: flex;
@@ -514,7 +519,6 @@ body {
     /* The height: 100vh; line is now removed */
     overflow: hidden;
 }
-
 
 
 .config-row:last-child {
