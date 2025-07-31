@@ -426,8 +426,43 @@ class ChatGPTUI {
 
     // === FILE HANDLING ===
     isMultiModalModel(modelId) {
-        const multiModalModels = ['gpt-4o', 'gpt-4-turbo', 'gpt-4-vision'];
-        return multiModalModels.some(model => modelId.includes(model));
+        if (!modelId) {
+            return false;
+        }
+
+        // --- ALLOWLIST (Highest Priority) ---
+        // If a model name is in this list, it is ALWAYS considered multimodal.
+        const exactMatchAllowlist = [
+            'chatgpt-4o-latest',                   // Your requested model to be found specifically
+            'gpt-4o',
+            'gpt-4o-mini',
+            'gpt-4.1'
+        ];
+        if (exactMatchAllowlist.includes(modelId)) {
+            return true;
+        }
+
+        // --- BLACKLIST (Second Priority) ---
+        // If a model name is in this list, it is NEVER multimodal,
+        // even if it matches a prefix rule below.
+        const exactMatchBlacklist = [
+            'whisper-1',           // This is a non-vision GPT-4 model
+            'tts-1',   // Another non-vision model
+            'text-embedding-3-large'
+        ];
+        if (exactMatchBlacklist.includes(modelId)) {
+            return false;
+        }
+
+        // --- PREFIX LIST (General Rule) ---
+        // If a model name STARTS WITH any of these strings, it is considered multimodal.
+        const multiModalPrefixes = [
+            'gpt-4.1-',
+            'gpt-4o-2'
+
+        ];
+
+        return multiModalPrefixes.some(prefix => modelId.startsWith(prefix));
     }
 
     updateFileUploadAvailability() {
@@ -650,8 +685,10 @@ class ChatGPTUI {
                 await this.sendNonStreamingMessage();
             }
         } catch (error) {
-            this.showError(error.message);
+            // Use our new function to display the error in the chat
+            this.addErrorMessageToChat(error.message);
         } finally {
+            // This block correctly re-enables the send button and hides the typing indicator
             this.finishResponse();
         }
     }
@@ -746,7 +783,7 @@ class ChatGPTUI {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+            throw new Error(`API Error - Expect this kind of messages on not know models of OpenAI, this is a simple project and may not suopport it -: ${errorData.error?.message || response.statusText}`);
         }
 
         await this.processStreamingResponse(response);
@@ -892,7 +929,7 @@ class ChatGPTUI {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+            throw new Error(`API Error - Expect this kind of messages on not know models of OpenAI, this is a simple project and may not suopport it - :${errorData.error?.message || response.statusText}`);
         }
 
         const data = await response.json();
@@ -934,9 +971,19 @@ class ChatGPTUI {
                 role: msg.role,
                 content: msg.content
             })),
-            max_tokens: 4000,
             stream: streaming
         };
+
+        const requiresMaxCompletionTokens = this.selectedModel.startsWith('o1') || 
+                                            this.selectedModel.startsWith('o3') || 
+                                            this.selectedModel.startsWith('o4');
+
+        if (requiresMaxCompletionTokens) {
+            requestBody.max_completion_tokens = 4000;
+        } else {
+            requestBody.max_tokens = 4000;
+        }
+        // === END OF FIX ===
 
         if (!this.isSearchPreviewModel(this.selectedModel)) {
             requestBody.temperature = 0.7;
@@ -1161,7 +1208,7 @@ class ChatGPTUI {
                         if (part.type === 'text') {
                             fullContent += `<div>${this.formatMessageContent(part.text)}</div>`;
                         } else if (part.type === 'image_url') {
-                            fullContent = `<img src="${part.image_url.url}" alt="user-uploaded-image" style="display: block; max-width: 100%; border-radius: 8px; margin-top: 8px; margin-bottom: 8px;"><hr><br>` + fullContent;
+                            fullContent = `<img src="${part.image_url.url}" alt="user-uploaded-image" style="display: block; max-width: 15vh; border-radius: 8px; margin-top: 8px; margin-bottom: 8px;"><hr><br>` + fullContent;
                         }
                     });
                     return fullContent;
@@ -1441,6 +1488,26 @@ class ChatGPTUI {
         this.showTemporaryMessage('All sessions have been deleted.', 'success');
     }
     // --- END NEW METHODS ---
+
+
+    addErrorMessageToChat(errorMessage) {
+        // We are no longer streaming, so finalize any partial message
+        if (this.currentStreamingMessage) {
+            this.finalizeStreamingMessage();
+        }
+        
+        const errorDiv = document.createElement('div');
+        // Add both 'message' and 'error' classes to apply the new CSS
+        errorDiv.className = 'message error';
+
+        // Sanitize the message to prevent any potential HTML injection
+        const sanitizedMessage = this.escapeHtml(errorMessage);
+
+        errorDiv.innerHTML = `<div class="message-content"><strong>API Error - Expect this kind of messages on not know models of OpenAI, this is a simple project and may not suopport it -:</strong><br>${sanitizedMessage}</div>`;
+
+        this.chatMessages.appendChild(errorDiv);
+        this.scrollToBottom();
+    }
 
     // === ENHANCED UTILITY METHODS ===
     renderMathJax(element = null) {

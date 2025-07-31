@@ -1437,3 +1437,15 @@ body {
 .file-list-popup .uploaded-file-name {
     max-width: 180px;
 }
+
+.message.error .message-content {
+	background: rgba(248, 81, 73, 0.15); /* Light red background */
+	color: var(--error); /* Uses the red color from your variables */
+	border: 1px solid var(--error);
+	box-shadow: none; /* Override any default shadows */
+}
+
+/* Optional: Style a strong tag inside for better visibility */
+.message.error .message-content strong {
+    color: var(--text-primary);
+}
