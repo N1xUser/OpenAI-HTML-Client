@@ -29,7 +29,7 @@ Here is what the tool can do:
 *   **Import/Export:** You can export all your chats to a single JSON file or import them back in.
 *   **File/Image Uploads:** Allows you to attach files and images to your prompts (for models that support it, like GPT-4o).
 *   **Streaming Responses:** Shows the AI's response as it's being generated.
-*   **Model Selection:** Lets you pick from the models available with your API key.
+*   **Model Selection:** Lets you pick from the models available with your API key BUT it extract ALL of them, some are NOT working, and some don't even accept text as input, so fix it if you want to use it.
 
 ## Beta Features Disclaimer
 
