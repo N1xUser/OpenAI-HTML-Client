@@ -1,6 +1,6 @@
 class ChatGPTUI {
     constructor() {
-        // Core state
+
         this.messages = [];
 
         this.apiKey = '';
@@ -12,15 +12,11 @@ class ChatGPTUI {
         this.isFirstMessage = true;
 
         this.isSidebarVisible = true;
-
-        // Streaming state
         this.currentStreamingMessage = null;
 
-        // Auto-save state
         this.autoSaveTimeout = null;
         this.autoSaveDelay = 2000;
-        
-        // Available models
+
         this.availableModels = [];
 
         this.initialize();
@@ -32,9 +28,9 @@ class ChatGPTUI {
         this.loadSettings();
         this.loadSessions();
         this.setupMobileMenu();
-        this.setupSidebarResizing(); // New function call
+        this.setupSidebarResizing();
     }
-    // === SIDEBAR RESIZING ===
+
     setupSidebarResizing() {
         const startResize = (e) => {
             e.preventDefault();
@@ -45,12 +41,11 @@ class ChatGPTUI {
 
         const doResize = (e) => {
             const newWidth = e.clientX;
-            // Get min/max from CSS
             const minWidth = parseInt(getComputedStyle(this.sidebar).minWidth, 10);
             const maxWidth = parseInt(getComputedStyle(this.sidebar).maxWidth, 10);
 
             if (newWidth > minWidth && newWidth < maxWidth) {
-                 this.appContainer.style.setProperty('--sidebar-width', `${newWidth}px`);
+                this.appContainer.style.setProperty('--sidebar-width', `${newWidth}px`);
             }
         };
 
@@ -58,54 +53,54 @@ class ChatGPTUI {
             this.sidebarResizer.classList.remove('resizing');
             document.removeEventListener('mousemove', doResize);
             document.removeEventListener('mouseup', stopResize);
-            // Save the new width
+
             const finalWidth = this.appContainer.style.getPropertyValue('--sidebar-width');
             localStorage.setItem('chatgpt_ui_sidebar_width', finalWidth);
         };
 
         this.sidebarResizer.addEventListener('mousedown', startResize);
     }
-    // === ELEMENT INITIALIZATION ===
+
     initializeElements() {
-        // App container
+
         this.appContainer = document.getElementById('appContainer');
 
-        // Chat elements
+
         this.chatMessages = document.getElementById('chatMessages');
         this.messageInput = document.getElementById('messageInput');
         this.sendButton = document.getElementById('sendButton');
         this.clearButton = document.getElementById('clearButton');
         this.typingIndicator = document.getElementById('typingIndicator');
 
-        // Config elements
+
         this.apiKeyInput = document.getElementById('apiKeyInput');
         this.modelSelect = document.getElementById('modelSelect');
         this.refreshModelsBtn = document.getElementById('refreshModelsBtn');
         this.streamingCheckbox = document.getElementById('streamingCheckbox');
         this.modelInfo = document.getElementById('modelInfo');
         this.mainControls = document.getElementById('mainControls');
-        
-        // File upload elements
+
+
         this.fileInput = document.getElementById('fileInput');
         this.fileUploadBtn = document.getElementById('fileUploadBtn');
         this.imageUploadBtn = document.getElementById('imageUploadBtn');
         this.uploadedFilesContainer = document.getElementById('uploadedFiles');
-        
-        // Session elements
+
+
         this.newChatBtn = document.getElementById('newChatBtn');
         this.sessionsList = document.getElementById('sessionsList');
         this.sessionNameInput = document.getElementById('sessionNameInput');
         this.exportSessionBtn = document.getElementById('exportSessionBtn');
         this.autoSaveIndicator = document.getElementById('autoSaveIndicator');
-        
-        // --- NEW ELEMENTS ---
+
+
         this.importAllBtn = document.getElementById('importAllBtn');
         this.exportAllBtn = document.getElementById('exportAllBtn');
         this.deleteAllBtn = document.getElementById('deleteAllBtn');
         this.importFileInput = document.getElementById('importFileInput');
-        // --- END NEW ELEMENTS ---
 
-        // Layout & Mobile elements
+
+
         this.mobileMenuToggle = document.getElementById('mobileMenuToggle');
         this.sidebar = document.getElementById('sidebar');
         this.sidebarOverlay = document.getElementById('sidebarOverlay');
@@ -115,43 +110,43 @@ class ChatGPTUI {
         this.configSection = document.getElementById('configSection');
     }
 
-    // === EVENT BINDING ===
+
     bindEvents() {
         this.sendButton.addEventListener('click', () => this.sendMessage());
         this.clearButton.addEventListener('click', () => this.clearChat());
         this.messageInput.addEventListener('keydown', (e) => this.handleMessageKeydown(e));
         this.messageInput.addEventListener('input', () => this.adjustTextareaHeight());
-        
+
         this.apiKeyInput.addEventListener('input', (e) => this.handleAPIKeyChange(e.target.value));
         this.modelSelect.addEventListener('change', (e) => this.updateModel(e.target.value));
         this.refreshModelsBtn.addEventListener('click', () => this.loadModels());
-        
+
         this.streamingCheckbox.addEventListener('change', (e) => {
             this.updateStreaming(e.target.checked);
             e.target.closest('.streaming-toggle').classList.toggle('checked', e.target.checked);
         });
-        
-        // Session events
+
+
         this.newChatBtn.addEventListener('click', () => this.createNewSession());
         this.exportSessionBtn.addEventListener('click', () => this.exportCurrentSession());
         this.sessionNameInput.addEventListener('input', () => this.scheduleAutoSave());
 
-        // --- NEW EVENT BINDINGS ---
+
         this.exportAllBtn.addEventListener('click', () => this.exportAllSessions());
         this.importAllBtn.addEventListener('click', () => this.importFileInput.click());
         this.importFileInput.addEventListener('change', (e) => this.handleImportAll(e));
         this.deleteAllBtn.addEventListener('click', () => this.deleteAllSessions());
-        // --- END NEW EVENT BINDINGS ---
-        
-        // Use event delegation for dynamically created session items
+
+
+
         this.sessionsList.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.session-delete-btn');
             if (deleteButton) {
                 const sessionId = deleteButton.dataset.sessionId;
                 this.deleteSession(sessionId);
-                return; // Stop further processing
+                return;
             }
-            
+
             const sessionContent = e.target.closest('.session-content');
             if (sessionContent) {
                 const sessionId = sessionContent.dataset.sessionId;
@@ -159,16 +154,16 @@ class ChatGPTUI {
             }
         });
 
-        // File upload events
+
         this.fileUploadBtn.addEventListener('click', () => this.openFileDialog('all'));
         this.imageUploadBtn.addEventListener('click', () => this.openFileDialog('images'));
         this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
-        
-        // Global events
+
+
         document.addEventListener('paste', (e) => this.handlePaste(e));
         window.addEventListener('beforeunload', () => this.performAutoSave());
-        
-        // Auto-save interval
+
+
         setInterval(() => {
             if (this.messages.length > 0) {
                 this.performAutoSave();
@@ -176,106 +171,106 @@ class ChatGPTUI {
         }, 30000);
     }
 
-    // === MOBILE MENU ===
-        setupMobileMenu() {
-            this.mobileMenuToggle.addEventListener('click', () => {
-                 this.sidebar.classList.toggle('show');
-                 this.sidebarOverlay.classList.toggle('show');
-            });
-            this.sidebarOverlay.addEventListener('click', () => {
-                 this.sidebar.classList.remove('show');
-                 this.sidebarOverlay.classList.remove('show');
-            });
-        }
 
-        checkScreenWidth() {
-            const isMobile = window.innerWidth <= 768;
-            if (isMobile && this.isSidebarVisible) {
-                this.closeMobileMenu(true); // Force close without animation on load
-            } else if (!isMobile && !this.isSidebarVisible) {
-                this.openMobileMenu(true); // Force open without animation on load
-            }
-        }
-
-        toggleMobileMenu() {
-            if (this.isSidebarVisible) {
-                this.closeMobileMenu();
-            } else {
-                this.openMobileMenu();
-            }
-        }
-
-        openMobileMenu(instant = false) {
-            if (instant) {
-                this.sidebar.style.transition = 'none';
-                this.mainContent.style.transition = 'none';
-            } else {
-                this.sidebar.style.transition = 'transform var(--transition-slow)';
-                this.mainContent.style.transition = 'all var(--transition-slow)';
-            }
-
-            this.sidebar.classList.add('show');
-            this.sidebarOverlay.classList.add('show');
-            this.mobileMenuToggle.classList.add('active');
-            this.mainContent.classList.remove('sidebar-hidden');
-            this.isSidebarVisible = true;
-            
-            if (instant) {
-                setTimeout(() => {
-                    this.sidebar.style.transition = '';
-                    this.mainContent.style.transition = '';
-                }, 50);
-            }
-        }
-
-        closeMobileMenu(instant = false) {
-            if (instant) {
-                this.sidebar.style.transition = 'none';
-                this.mainContent.style.transition = 'none';
-            } else {
-                this.sidebar.style.transition = 'transform var(--transition-slow)';
-                this.mainContent.style.transition = 'all var(--transition-slow)';
-            }
-            
+    setupMobileMenu() {
+        this.mobileMenuToggle.addEventListener('click', () => {
+            this.sidebar.classList.toggle('show');
+            this.sidebarOverlay.classList.toggle('show');
+        });
+        this.sidebarOverlay.addEventListener('click', () => {
             this.sidebar.classList.remove('show');
             this.sidebarOverlay.classList.remove('show');
-            this.mobileMenuToggle.classList.remove('active');
-            this.mainContent.classList.add('sidebar-hidden');
-            this.isSidebarVisible = false;
-            
-            if (instant) {
-                setTimeout(() => {
-                    this.sidebar.style.transition = '';
-                    this.mainContent.style.transition = '';
-                }, 50);
-            }
+        });
+    }
+
+    checkScreenWidth() {
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile && this.isSidebarVisible) {
+            this.closeMobileMenu(true);
+        } else if (!isMobile && !this.isSidebarVisible) {
+            this.openMobileMenu(true);
+        }
+    }
+
+    toggleMobileMenu() {
+        if (this.isSidebarVisible) {
+            this.closeMobileMenu();
+        } else {
+            this.openMobileMenu();
+        }
+    }
+
+    openMobileMenu(instant = false) {
+        if (instant) {
+            this.sidebar.style.transition = 'none';
+            this.mainContent.style.transition = 'none';
+        } else {
+            this.sidebar.style.transition = 'transform var(--transition-slow)';
+            this.mainContent.style.transition = 'all var(--transition-slow)';
         }
 
+        this.sidebar.classList.add('show');
+        this.sidebarOverlay.classList.add('show');
+        this.mobileMenuToggle.classList.add('active');
+        this.mainContent.classList.remove('sidebar-hidden');
+        this.isSidebarVisible = true;
 
-    // === SETTINGS MANAGEMENT ===
+        if (instant) {
+            setTimeout(() => {
+                this.sidebar.style.transition = '';
+                this.mainContent.style.transition = '';
+            }, 50);
+        }
+    }
+
+    closeMobileMenu(instant = false) {
+        if (instant) {
+            this.sidebar.style.transition = 'none';
+            this.mainContent.style.transition = 'none';
+        } else {
+            this.sidebar.style.transition = 'transform var(--transition-slow)';
+            this.mainContent.style.transition = 'all var(--transition-slow)';
+        }
+
+        this.sidebar.classList.remove('show');
+        this.sidebarOverlay.classList.remove('show');
+        this.mobileMenuToggle.classList.remove('active');
+        this.mainContent.classList.add('sidebar-hidden');
+        this.isSidebarVisible = false;
+
+        if (instant) {
+            setTimeout(() => {
+                this.sidebar.style.transition = '';
+                this.mainContent.style.transition = '';
+            }, 50);
+        }
+    }
+
+
+
     loadSettings() {
         try {
-            // Sidebar width
+
             const savedWidth = localStorage.getItem('chatgpt_ui_sidebar_width');
             if (savedWidth) {
                 this.appContainer.style.setProperty('--sidebar-width', savedWidth);
             }
 
-            // API Key and Model
+
             const savedApiKey = localStorage.getItem('chatgpt_ui_api_key');
             const savedModel = localStorage.getItem('chatgpt_ui_selected_model');
             const savedStreaming = localStorage.getItem('chatgpt_ui_streaming');
-            
+
             if (savedApiKey) {
                 this.apiKey = savedApiKey;
                 this.apiKeyInput.value = savedApiKey;
                 this.loadModels();
             }
-            
+
             if (savedModel) {
                 this.selectedModel = savedModel;
             }
-            
+
             if (savedStreaming !== null) {
                 this.streamingEnabled = savedStreaming === 'true';
                 this.streamingCheckbox.checked = this.streamingEnabled;
@@ -296,11 +291,11 @@ class ChatGPTUI {
         }
     }
 
-    // === API KEY AND MODELS ===
+
     async handleAPIKeyChange(key) {
         this.apiKey = key;
         this.saveSettings();
-        
+
         if (key.trim()) {
             await this.loadModels();
         } else {
@@ -354,17 +349,17 @@ class ChatGPTUI {
         return models.sort((a, b) => {
             const aIsChat = chatModels.some(model => a.id.includes(model));
             const bIsChat = chatModels.some(model => b.id.includes(model));
-            
+
             if (aIsChat && !bIsChat) return -1;
             if (!aIsChat && bIsChat) return 1;
-            
+
             return a.id.localeCompare(b.id);
         });
     }
 
     populateModelSelect() {
         this.modelSelect.innerHTML = '<option value="">Select a model</option>';
-        
+
         this.availableModels.forEach(model => {
             const option = document.createElement('option');
             option.value = model.id;
@@ -405,17 +400,17 @@ class ChatGPTUI {
         }
 
         let infoText = `Model: ${this.selectedModel}`;
-        
+
         if (this.isMultiModalModel(this.selectedModel)) {
             infoText += ' • Supports images';
         }
-        
+
         if (this.selectedModel.includes('gpt-4')) {
             infoText += ' • High capability';
         } else if (this.selectedModel.includes('gpt-3.5')) {
             infoText += ' • Fast & efficient';
         }
-        
+
         this.modelInfo.textContent = infoText;
     }
 
@@ -424,16 +419,16 @@ class ChatGPTUI {
         this.saveSettings();
     }
 
-    // === FILE HANDLING ===
+
     isMultiModalModel(modelId) {
         if (!modelId) {
             return false;
         }
 
-        // --- ALLOWLIST (Highest Priority) ---
-        // If a model name is in this list, it is ALWAYS considered multimodal.
+
+
         const exactMatchAllowlist = [
-            'chatgpt-4o-latest',                   // Your requested model to be found specifically
+            'chatgpt-4o-latest',
             'gpt-4o',
             'gpt-4o-mini',
             'gpt-4.1'
@@ -442,20 +437,20 @@ class ChatGPTUI {
             return true;
         }
 
-        // --- BLACKLIST (Second Priority) ---
-        // If a model name is in this list, it is NEVER multimodal,
-        // even if it matches a prefix rule below.
+
+
+
         const exactMatchBlacklist = [
-            'whisper-1',           // This is a non-vision GPT-4 model
-            'tts-1',   // Another non-vision model
+            'whisper-1',
+            'tts-1',
             'text-embedding-3-large'
         ];
         if (exactMatchBlacklist.includes(modelId)) {
             return false;
         }
 
-        // --- PREFIX LIST (General Rule) ---
-        // If a model name STARTS WITH any of these strings, it is considered multimodal.
+
+
         const multiModalPrefixes = [
             'gpt-4.1-',
             'gpt-4o-2'
@@ -469,7 +464,7 @@ class ChatGPTUI {
         const isMultiModal = this.isMultiModalModel(this.selectedModel);
         this.fileUploadBtn.disabled = !isMultiModal;
         this.imageUploadBtn.disabled = !isMultiModal;
-        
+
         if (!isMultiModal && this.uploadedFiles.length > 0) {
             this.clearUploadedFiles();
         }
@@ -564,13 +559,13 @@ class ChatGPTUI {
 
         if (this.uploadedFiles.length === 0) return;
 
-        // Create the file counter
+
         const fileCounter = document.createElement('div');
         fileCounter.className = 'icon-btn';
         fileCounter.innerHTML = `<span style="font-size: 14px;">${this.uploadedFiles.length}</span>`;
         fileCounter.title = `${this.uploadedFiles.length} file(s) attached`;
-        
-        // Create the popup menu
+
+
         const popup = document.createElement('div');
         popup.className = 'file-list-popup';
 
@@ -578,35 +573,37 @@ class ChatGPTUI {
             const fileDiv = this.createFileElement(file, index);
             popup.appendChild(fileDiv);
         });
-        
+
         this.uploadedFilesContainer.append(fileCounter, popup);
 
-        // Event listener to show/hide the popup
+
         fileCounter.addEventListener('click', (e) => {
             e.stopPropagation();
             this.uploadedFilesContainer.classList.toggle('active');
         });
 
-        // Global listener to hide the popup when clicking outside
+
         document.addEventListener('click', (e) => {
             if (!this.uploadedFilesContainer.contains(e.target)) {
                 this.uploadedFilesContainer.classList.remove('active');
             }
-        }, { once: true });
+        }, {
+            once: true
+        });
     }
-    
+
     createFileElement(file, index) {
         const fileDiv = document.createElement('div');
         fileDiv.className = 'uploaded-file';
         const fileName = this.escapeHtml(file.name);
 
-        const fileIcon = file.type === 'image' 
-            ? `<img src="${file.data}" alt="thumbnail">` 
-            : '📄';
+        const fileIcon = file.type === 'image' ?
+            `<img src="${file.data}" alt="thumbnail">` :
+            '📄';
 
         fileDiv.innerHTML = `${fileIcon}<span class="uploaded-file-name">${fileName}</span><button class="remove-file-btn" onclick="chatUI.removeUploadedFile(${index})">×</button>`;
-        
-        // Prevent click from bubbling up and closing the list
+
+
         fileDiv.querySelector('.remove-file-btn').addEventListener('click', (e) => {
             e.stopPropagation();
         });
@@ -624,7 +621,7 @@ class ChatGPTUI {
         this.updateUploadedFilesDisplay();
     }
 
-    // === MESSAGE HANDLING ===
+
     handleMessageKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
@@ -637,7 +634,7 @@ class ChatGPTUI {
         this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 150) + 'px';
     }
 
-      
+
     async sendMessage() {
         const message = this.messageInput.value.trim();
         if (!message && this.uploadedFiles.length === 0) return;
@@ -652,10 +649,10 @@ class ChatGPTUI {
 
         if (!this.validateSendConditions()) return;
 
-        // The API request is now built from the clean message text
+
         const messageContent = this.createMultimodalContent(message);
 
-        // Prepare the rich HTML for display in the UI
+
         let displayHtml = '';
         if (this.uploadedFiles.length > 0) {
             this.uploadedFiles.forEach(file => {
@@ -671,9 +668,12 @@ class ChatGPTUI {
             displayHtml += `<div class="user-message-text">${this.escapeHtml(message)}</div>`;
         }
 
-        // Add the clean content to the UI and the permanent message history
+
         this.addMessage('user', displayHtml, true);
-        this.messages.push({ role: 'user', content: messageContent }); // History is now always clean
+        this.messages.push({
+            role: 'user',
+            content: messageContent
+        });
 
         this.resetMessageInput();
         this.prepareForResponse();
@@ -685,15 +685,15 @@ class ChatGPTUI {
                 await this.sendNonStreamingMessage();
             }
         } catch (error) {
-            // Use our new function to display the error in the chat
+
             this.addErrorMessageToChat(error.message);
         } finally {
-            // This block correctly re-enables the send button and hides the typing indicator
+
             this.finishResponse();
         }
     }
 
-    
+
 
     validateSendConditions() {
         if (!this.apiKey) {
@@ -712,32 +712,40 @@ class ChatGPTUI {
         if (this.isFirstMessage && message.trim()) {
             finalMessage = message + '\n\nAnother request:\nBased on what i asked you, how should this session title be? answer with this format but instead of AI Title, with what you think it should be: /X/ AI Title /X/\n\nBe short, dont mention OpenAI API, if the user says hi, just make a message of the day oriented to help\n\nThen follow the normal answer of my original request and remember to use ```code ``` format when you writte related code';
         }
-        
+
         let messageContent, displayContent;
-        
+
         if (this.uploadedFiles.length > 0 && this.isMultiModalModel(this.selectedModel)) {
             messageContent = this.createMultimodalContent(finalMessage);
-            displayContent = this.createMultimodalContent(message); // Clean version for display
+            displayContent = this.createMultimodalContent(message);
         } else {
             messageContent = finalMessage;
             displayContent = message;
         }
-        
-        return { messageContent, displayContent };
+
+        return {
+            messageContent,
+            displayContent
+        };
     }
 
     createMultimodalContent(textMessage) {
         const content = [];
-        
+
         if (textMessage) {
-            content.push({ type: 'text', text: textMessage });
+            content.push({
+                type: 'text',
+                text: textMessage
+            });
         }
-        
+
         this.uploadedFiles.forEach(file => {
             if (file.type === 'image') {
                 content.push({
                     type: 'image_url',
-                    image_url: { url: file.data }
+                    image_url: {
+                        url: file.data
+                    }
                 });
             } else {
                 content.push({
@@ -746,7 +754,7 @@ class ChatGPTUI {
                 });
             }
         });
-        
+
         return content;
     }
 
@@ -768,10 +776,10 @@ class ChatGPTUI {
         this.hideTypingIndicator();
     }
 
-    // === STREAMING MESSAGES ===
+
     async sendStreamingMessage() {
         const requestBody = this.createRequestBody(true);
-        
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -794,13 +802,13 @@ class ChatGPTUI {
         const messageContent = assistantMessage.querySelector('.message-content');
 
         this.chatMessages.appendChild(assistantMessage);
-        //this.scrollToBottom();
+
 
         const cursor = document.createElement('span');
         cursor.className = 'streaming-cursor';
 
         messageContent.appendChild(cursor);
-        
+
         this.currentStreamingMessage = {
             element: messageContent,
             content: '',
@@ -813,10 +821,15 @@ class ChatGPTUI {
 
         try {
             while (true) {
-                const { done, value } = await reader.read();
+                const {
+                    done,
+                    value
+                } = await reader.read();
                 if (done) break;
 
-                buffer += decoder.decode(value, { stream: true });
+                buffer += decoder.decode(value, {
+                    stream: true
+                });
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || '';
 
@@ -832,7 +845,7 @@ class ChatGPTUI {
 
     async processStreamLine(line) {
         if (!line.startsWith('data: ')) return;
-        
+
         const data = line.slice(6);
         if (data === '[DONE]') return;
 
@@ -844,41 +857,44 @@ class ChatGPTUI {
                 this.updateStreamingMessage();
             }
         } catch (e) {
-            // Ignore JSON parse errors for partial data
+
         }
     }
     updateSessionTimestampAndSave() {
-            if (!this.currentSessionId) return;
+        if (!this.currentSessionId) return;
 
-            const session = this.sessions.get(this.currentSessionId);
-            if (!session) return;
+        const session = this.sessions.get(this.currentSessionId);
+        if (!session) return;
 
-            // Set the timestamp and re-order the session list
-            session.updatedAt = Date.now();
-            this.sessions.set(this.currentSessionId, session);
-            
-            this.updateSessionsList(); // This re-sorts the list with the current chat at the top
-            this.saveSessions();
-        }
+
+        session.updatedAt = Date.now();
+        this.sessions.set(this.currentSessionId, session);
+
+        this.updateSessionsList();
+        this.saveSessions();
+    }
     updateStreamingMessage() {
         if (!this.currentStreamingMessage) return;
-        
+
         let displayContent = this.currentStreamingMessage.content;
-        
-        // Handle first message title extraction
+
+
         if (this.isFirstMessage) {
-            const { title, cleanedContent } = this.extractSessionTitleFromResponse(displayContent);
+            const {
+                title,
+                cleanedContent
+            } = this.extractSessionTitleFromResponse(displayContent);
             if (title) {
                 this.sessionNameInput.value = title;
                 displayContent = cleanedContent;
             }
         }
-        
+
         const formattedContent = this.formatMessageContent(displayContent);
         this.currentStreamingMessage.element.innerHTML = formattedContent + '<span class="streaming-cursor"></span>';
-        
+
         this.currentStreamingMessage.cursor = this.currentStreamingMessage.element.querySelector('.streaming-cursor');
-        
+
         setTimeout(() => {
             if (this.currentStreamingMessage && this.currentStreamingMessage.element.parentNode) {
                 this.renderMathJax(this.currentStreamingMessage.element);
@@ -888,36 +904,42 @@ class ChatGPTUI {
 
     finalizeStreamingMessage() {
         if (!this.currentStreamingMessage) return;
-        
+
         let finalContent = this.currentStreamingMessage.content;
-        
-        // Handle first message title extraction
+
+
         if (this.isFirstMessage) {
-            const { title, cleanedContent } = this.extractSessionTitleFromResponse(finalContent);
+            const {
+                title,
+                cleanedContent
+            } = this.extractSessionTitleFromResponse(finalContent);
             if (title) {
                 this.sessionNameInput.value = title;
                 finalContent = cleanedContent;
             }
             this.isFirstMessage = false;
         }
-        
-        // Update displayed content with cleaned version
+
+
         this.currentStreamingMessage.element.innerHTML = this.formatMessageContent(finalContent);
         this.currentStreamingMessage.cursor.remove();
-        
-        this.messages.push({ role: 'assistant', content: finalContent });
+
+        this.messages.push({
+            role: 'assistant',
+            content: finalContent
+        });
         this.scheduleAutoSave();
-        
+
         this.updateSessionTimestampAndSave();
 
         this.currentStreamingMessage = null;
         setTimeout(() => this.renderMathJax(), 50);
     }
 
-    // === NON-STREAMING MESSAGES ===
+
     async sendNonStreamingMessage() {
         const requestBody = this.createRequestBody(false);
-        
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -934,18 +956,24 @@ class ChatGPTUI {
 
         const data = await response.json();
         let assistantResponse = data.choices[0].message.content;
-        
+
         if (this.isFirstMessage) {
-            const { title, cleanedContent } = this.extractSessionTitleFromResponse(assistantResponse);
+            const {
+                title,
+                cleanedContent
+            } = this.extractSessionTitleFromResponse(assistantResponse);
             if (title) {
                 this.sessionNameInput.value = title;
                 assistantResponse = cleanedContent;
             }
             this.isFirstMessage = false;
         }
-        
+
         this.addMessage('assistant', assistantResponse);
-        this.messages.push({ role: 'assistant', content: assistantResponse });
+        this.messages.push({
+            role: 'assistant',
+            content: assistantResponse
+        });
         this.scheduleAutoSave();
         this.updateSessionTimestampAndSave();
     }
@@ -955,11 +983,14 @@ class ChatGPTUI {
 
         if (this.isFirstMessage && messagesForApi.length > 0) {
             const hiddenPrompt = '\n\nAnother request:\nBased on what i asked you, how should this session title be? answer with this format but instead of AI Title, with what you think it should be: /X/ AI Title /X/\n\nBe short, dont mention OpenAI API, if the user says hi, just make a message of the day oriented to help\n\nThen follow the normal answer of my original request and remember to use ```code ``` format when you writte related code';
-            
+
             const lastMessage = messagesForApi[messagesForApi.length - 1];
 
             if (Array.isArray(lastMessage.content)) {
-                lastMessage.content.push({ type: 'text', text: hiddenPrompt });
+                lastMessage.content.push({
+                    type: 'text',
+                    text: hiddenPrompt
+                });
             } else if (typeof lastMessage.content === 'string') {
                 lastMessage.content += hiddenPrompt;
             }
@@ -974,16 +1005,16 @@ class ChatGPTUI {
             stream: streaming
         };
 
-        const requiresMaxCompletionTokens = this.selectedModel.startsWith('o1') || 
-                                            this.selectedModel.startsWith('o3') || 
-                                            this.selectedModel.startsWith('o4');
+        const requiresMaxCompletionTokens = this.selectedModel.startsWith('o1') ||
+            this.selectedModel.startsWith('o3') ||
+            this.selectedModel.startsWith('o4');
 
         if (requiresMaxCompletionTokens) {
             requestBody.max_completion_tokens = 4000;
         } else {
             requestBody.max_tokens = 4000;
         }
-        // === END OF FIX ===
+
 
         if (!this.isSearchPreviewModel(this.selectedModel)) {
             requestBody.temperature = 0.7;
@@ -996,7 +1027,7 @@ class ChatGPTUI {
         return modelId?.includes('search-preview');
     }
 
-    // === SESSION MANAGEMENT ===
+
     loadSessions() {
         try {
             const saved = localStorage.getItem('chatgpt_ui_sessions');
@@ -1008,7 +1039,7 @@ class ChatGPTUI {
                     this.sessions = new Map(Object.entries(sessionsData));
                 }
 
-                // Ensure all loaded sessions have a valid timestamp for safety.
+
                 this.sessions.forEach(session => {
                     if (!session.updatedAt) {
                         session.updatedAt = session.createdAt || Date.now();
@@ -1016,19 +1047,19 @@ class ChatGPTUI {
                 });
             }
 
-            // FIX: Logic to load the correct session on startup.
+
             const lastSessionId = localStorage.getItem('chatgpt_ui_last_session_id');
 
             if (lastSessionId && this.sessions.has(lastSessionId)) {
-                // If a last-used session ID exists and is valid, load it.
+
                 this.loadSession(lastSessionId);
             } else if (this.sessions.size > 0) {
-                // Otherwise, if sessions exist, load the most recently updated one.
+
                 const sortedSessions = Array.from(this.sessions.values())
                     .sort((a, b) => b.updatedAt - a.updatedAt);
                 this.loadSession(sortedSessions[0].id);
             } else {
-                // If there are no sessions at all, create a new one.
+
                 this.createNewSession();
             }
 
@@ -1057,7 +1088,7 @@ class ChatGPTUI {
             createdAt: Date.now(),
             updatedAt: Date.now()
         };
-        
+
         this.sessions.set(sessionId, session);
         this.loadSession(sessionId);
         this.updateSessionsList();
@@ -1072,21 +1103,21 @@ class ChatGPTUI {
         localStorage.setItem('chatgpt_ui_last_session_id', sessionId);
 
         this.messages = [...session.messages];
-            this.sessionNameInput.value = session.name;
-            this.isFirstMessage = this.messages.length === 0;
-            
-            if (this.isFirstMessage) {
-                this.chatMessages.innerHTML = `<div class="message assistant"><div class="message-content">Hello! To begin, please type your message in the text box below.</div></div>`;
-            } else {
-                this.renderMessages();
-            }
-            
-            this.updateSessionsList();
+        this.sessionNameInput.value = session.name;
+        this.isFirstMessage = this.messages.length === 0;
+
+        if (this.isFirstMessage) {
+            this.chatMessages.innerHTML = `<div class="message assistant"><div class="message-content">Hello! To begin, please type your message in the text box below.</div></div>`;
+        } else {
+            this.renderMessages();
+        }
+
+        this.updateSessionsList();
     }
 
     updateSessionsList() {
         this.sessionsList.innerHTML = '';
-        
+
         const sortedSessions = Array.from(this.sessions.values())
             .sort((a, b) => b.updatedAt - a.updatedAt);
 
@@ -1099,55 +1130,55 @@ class ChatGPTUI {
     createSessionElement(session) {
         const div = document.createElement('div');
         div.className = `session-item ${session.id === this.currentSessionId ? 'active' : ''}`;
-        
-        // Use data attributes for event delegation
+
+
         div.innerHTML = `<div class="session-content" data-session-id="${session.id}"><div class="session-name">${this.escapeHtml(session.name)}</div><div class="session-date">Updated: ${this.formatTime(session.updatedAt)}</div><div class="session-date created-date">Created: ${new Date(session.createdAt).toLocaleDateString()}</div></div><button class="session-delete-btn" data-session-id="${session.id}" title="Delete session">×</button>`;
         return div;
     }
 
     resetToEmptyState() {
-        // Clear the visual elements
+
         this.sessionsList.innerHTML = '';
         this.chatMessages.innerHTML = `<div class="message assistant"><div class="message-content">Hello! All chats have been cleared. Type a message below to start a new conversation.</div></div>`;
         this.sessionNameInput.value = '';
 
-        // Reset the internal state
+
         this.messages = [];
         this.currentSessionId = null;
         this.isFirstMessage = true;
         this.clearUploadedFiles();
 
-        // Crucially, remove the "last session" ID from storage so it doesn't try
-        // to load a non-existent chat on the next page reload.
+
+
         localStorage.removeItem('chatgpt_ui_last_session_id');
     }
     deleteSession(sessionId) {
-        // FIX: The guard preventing deletion of the last session is removed.
+
 
         if (!this.sessions.has(sessionId)) return;
 
-        // Immediately delete the session from the map and save the change.
+
         this.sessions.delete(sessionId);
         this.saveSessions();
 
-        // Determine which session to load next.
+
         if (this.currentSessionId === sessionId) {
             if (this.sessions.size > 0) {
                 const sortedSessions = Array.from(this.sessions.values())
                     .sort((a, b) => b.updatedAt - a.updatedAt);
                 this.loadSession(sortedSessions[0].id);
             } else {
-                // FIX: Call the new function to achieve a true empty state.
+
                 this.resetToEmptyState();
             }
         } else {
-            // If we deleted a different session, the current one is still valid.
-            // We just need to refresh the list to remove the deleted item.
+
+
             this.updateSessionsList();
         }
     }
 
-    // === AUTO-SAVE ===
+
     scheduleAutoSave() {
         clearTimeout(this.autoSaveTimeout);
         this.autoSaveTimeout = setTimeout(() => this.performAutoSave(), this.autoSaveDelay);
@@ -1161,10 +1192,10 @@ class ChatGPTUI {
 
         session.name = this.sessionNameInput.value || 'New Chat';
         session.messages = [...this.messages];
-        // The updatedAt timestamp is now handled separately
-        
+
+
         this.sessions.set(this.currentSessionId, session);
-        // We don't need to call updateSessionsList() here anymore, it's handled by the timestamp update
+
         this.saveSessions();
         this.showAutoSaveIndicator();
     }
@@ -1176,7 +1207,7 @@ class ChatGPTUI {
         }, 2000);
     }
 
-    // === MESSAGE DISPLAY ===
+
     addMessage(role, content, isHtml = false) {
         const messageElement = this.createMessageElement(role, content, isHtml);
         this.chatMessages.appendChild(messageElement);
@@ -1191,11 +1222,11 @@ class ChatGPTUI {
         const formattedContent = isHtml ? content : this.formatMessageContent(content);
 
         const copyClass = role === 'system' ? 'message-copy-s' :
-                          role === 'user'   ? 'message-copy-u' :
-                          'message-copy';
+            role === 'user' ? 'message-copy-u' :
+            'message-copy';
 
         messageDiv.innerHTML = `<div class="message-content">${formattedContent}</div><div class="message-actions"><button class="${copyClass}" onclick="chatUI.copyMessage(this)" title="Copy message">📋</button></div>`;
-        
+
         return messageDiv;
     }
 
@@ -1203,32 +1234,32 @@ class ChatGPTUI {
         if (!content) return '';
 
         if (Array.isArray(content)) {
-                    let fullContent = '';
-                    content.forEach(part => {
-                        if (part.type === 'text') {
-                            fullContent += `<div>${this.formatMessageContent(part.text)}</div>`;
-                        } else if (part.type === 'image_url') {
-                            fullContent = `<img src="${part.image_url.url}" alt="user-uploaded-image" style="display: block; max-width: 15vh; border-radius: 8px; margin-top: 8px; margin-bottom: 8px;"><hr><br>` + fullContent;
-                        }
-                    });
-                    return fullContent;
+            let fullContent = '';
+            content.forEach(part => {
+                if (part.type === 'text') {
+                    fullContent += `<div>${this.formatMessageContent(part.text)}</div>`;
+                } else if (part.type === 'image_url') {
+                    fullContent = `<img src="${part.image_url.url}" alt="user-uploaded-image" style="display: block; max-width: 15vh; border-radius: 8px; margin-top: 8px; margin-bottom: 8px;"><hr><br>` + fullContent;
                 }
+            });
+            return fullContent;
+        }
 
         if (typeof content === 'string') {
-            // The main formatting pipeline
+
             const codeBlocks = [];
             const placeholder = '---CODEBLOCK-PLACEHOLDER---' + Math.random();
 
-            // Step 1: Isolate code blocks
+
             let processedText = this.processCodeBlocks(content, codeBlocks, placeholder);
-            
-            // Step 2: Process LaTeX on the remaining text
+
+
             processedText = this.processLatex(processedText);
-            
-            // Step 3: Process Markdown on the remaining text
+
+
             processedText = this.processMarkdown(processedText);
 
-            // Step 4: Restore code blocks
+
             if (codeBlocks.length > 0) {
                 processedText.split(placeholder).forEach((part, index) => {
                     if (index > 0) {
@@ -1236,10 +1267,10 @@ class ChatGPTUI {
                     }
                 });
             }
-            
+
             return processedText;
         }
-        
+
         return '';
     }
     processMarkdown(content) {
@@ -1263,11 +1294,7 @@ class ChatGPTUI {
 
 
         formattedContent = formattedContent.replace(/\n/g, '<br>');
-
-
         formattedContent = formattedContent.replace(/(<\/h[1-6]>|<hr>)(<br>\s*)+/gi, '$1');
-
-
         formattedContent = formattedContent.replace(/(<br>\s*)+(<h[1-6]|<hr>)/gi, '$2');
 
         return formattedContent;
@@ -1285,7 +1312,7 @@ class ChatGPTUI {
     copyMessage(button) {
         const messageContent = button.closest('.message').querySelector('.message-content');
         const text = messageContent.innerText;
-        
+
         navigator.clipboard.writeText(text).then(() => {
             this.showTemporaryMessage('Message copied!', 'success');
         }).catch(() => {
@@ -1303,18 +1330,24 @@ class ChatGPTUI {
         }
     }
 
-    // === UTILITY METHODS ===
+
     extractSessionTitleFromResponse(content) {
         const titleRegex = /\/X\/(.*?)\/X\//;
         const match = content.match(titleRegex);
-        
+
         if (match) {
             const title = match[1].trim();
             const cleanedContent = content.replace(titleRegex, '').trim();
-            return { title, cleanedContent };
+            return {
+                title,
+                cleanedContent
+            };
         }
-        
-        return { title: null, cleanedContent: content };
+
+        return {
+            title: null,
+            cleanedContent: content
+        };
     }
 
     formatTime(timestamp) {
@@ -1329,7 +1362,7 @@ class ChatGPTUI {
         if (diffMins < 60) return `${diffMins}m ago`;
         if (diffHours < 24) return `${diffHours}h ago`;
         if (diffDays < 7) return `${diffDays}d ago`;
-        
+
         return date.toLocaleDateString();
     }
 
@@ -1341,10 +1374,25 @@ class ChatGPTUI {
 
     getFileIcon(extension) {
         const icons = {
-            js: '📄', html: '🌐', css: '🎨', py: '🐍', java: '☕',
-            cpp: '🔧', c: '🔧', cs: '🔷', php: '🐘', rb: '💎',
-            ts: '📘', json: '📋', xml: '📄', md: '📝', txt: '📄',
-            csv: '📊', xlsx: '📊', docx: '📄', pdf: '📕'
+            js: '📄',
+            html: '🌐',
+            css: '🎨',
+            py: '🐍',
+            java: '☕',
+            cpp: '🔧',
+            c: '🔧',
+            cs: '🔷',
+            php: '🐘',
+            rb: '💎',
+            ts: '📘',
+            json: '📋',
+            xml: '📄',
+            md: '📝',
+            txt: '📄',
+            csv: '📊',
+            xlsx: '📊',
+            docx: '📄',
+            pdf: '📕'
         };
         return icons[extension] || '📄';
     }
@@ -1383,9 +1431,9 @@ class ChatGPTUI {
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.textContent = message;
-        
+
         document.body.appendChild(toast);
-        
+
         setTimeout(() => toast.classList.add('show'), 100);
         setTimeout(() => {
             toast.classList.remove('show');
@@ -1393,10 +1441,10 @@ class ChatGPTUI {
         }, 3000);
     }
 
-    // === EXPORT/IMPORT FUNCTIONALITY ===
+
     exportCurrentSession() {
         if (!this.currentSessionId) return;
-        
+
         const session = this.sessions.get(this.currentSessionId);
         if (!session) return;
 
@@ -1409,18 +1457,20 @@ class ChatGPTUI {
             }))
         };
 
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: 'application/json'
+        });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = `${session.name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.json`;
         a.click();
-        
+
         URL.revokeObjectURL(url);
     }
-    
-    // --- NEW METHODS ---
+
+
     exportAllSessions() {
         if (this.sessions.size === 0) {
             this.showError("No sessions to export.");
@@ -1428,21 +1478,23 @@ class ChatGPTUI {
         }
 
         const exportData = Array.from(this.sessions.entries());
-        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+            type: 'application/json'
+        });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = `chatgpt_ui_all_sessions_${Date.now()}.json`;
         a.click();
-        
+
         URL.revokeObjectURL(url);
         this.showTemporaryMessage('All sessions exported!', 'success');
     }
 
     handleImportAll(event) {
         if (!confirm('Importing will replace all current chats. Are you sure you want to continue?')) {
-            event.target.value = ''; // Reset file input
+            event.target.value = '';
             return;
         }
 
@@ -1459,13 +1511,13 @@ class ChatGPTUI {
 
                 this.sessions = new Map(importedData);
                 this.saveSessions();
-                this.loadSessions(); 
+                this.loadSessions();
                 this.showTemporaryMessage('Sessions imported successfully!', 'success');
 
             } catch (error) {
                 this.showError(`Import failed: ${error.message}`);
             } finally {
-                event.target.value = ''; // Reset file input
+                event.target.value = '';
             }
         };
         reader.onerror = () => {
@@ -1483,40 +1535,40 @@ class ChatGPTUI {
         this.sessions.clear();
         this.saveSessions();
         this.resetToEmptyState();
-        // After reset, we must create a new blank session to start over
-        this.createNewSession(); 
+
+        this.createNewSession();
         this.showTemporaryMessage('All sessions have been deleted.', 'success');
     }
-    // --- END NEW METHODS ---
+
 
 
     addErrorMessageToChat(errorMessage) {
-        // We are no longer streaming, so finalize any partial message
+
         if (this.currentStreamingMessage) {
             this.finalizeStreamingMessage();
         }
-        
+
         const errorDiv = document.createElement('div');
-        // Add both 'message' and 'error' classes to apply the new CSS
+
         errorDiv.className = 'message error';
 
-        // Sanitize the message to prevent any potential HTML injection
+
         const sanitizedMessage = this.escapeHtml(errorMessage);
 
-        errorDiv.innerHTML = `<div class="message-content"><strong>API Error - Expect this kind of messages on not know models of OpenAI, this is a simple project and may not suopport it -:</strong><br>${sanitizedMessage}</div>`;
+        errorDiv.innerHTML = `<div class="message-content"><strong>API Error:</strong><br>${sanitizedMessage}</div>`;
 
         this.chatMessages.appendChild(errorDiv);
         this.scrollToBottom();
     }
 
-    // === ENHANCED UTILITY METHODS ===
+
     renderMathJax(element = null) {
         if (!window.MathJax?.typesetPromise) return;
 
         setTimeout(() => {
             try {
                 const target = element?.parentNode ? [element] : undefined;
-                window.MathJax.typesetPromise(target).catch(err => 
+                window.MathJax.typesetPromise(target).catch(err =>
                     console.warn('MathJax error:', err)
                 );
             } catch (err) {
@@ -1528,7 +1580,7 @@ class ChatGPTUI {
     copyToClipboard(elementId) {
         const element = document.getElementById(elementId);
         if (!element) return;
-        
+
         navigator.clipboard.writeText(element.innerText).then(() => {
             this.showTemporaryMessage('Copied to clipboard!', 'success');
         }).catch(() => {
@@ -1560,22 +1612,22 @@ class ChatGPTUI {
     }
 
     processCodeBlocks(content, codeBlocks, placeholder) {
-        // Corrected Regex: handles leading spaces and uses multiline flag
+
         return content.replace(/^\s*```(\w*)\n([\s\S]*?)\n\s*```/gm, (match, lang, code) => {
             const language = lang || 'text';
             const codeId = 'code_' + Math.random().toString(36).substr(2, 9);
-            
+
             const escapedCode = this.escapeHtml(code);
 
             const blockHtml = `<div class="code-block"><div class="code-block-header"><span>${language}</span><button class="copy-btn" onclick="chatUI.copyToClipboard('${codeId}')">Copy</button></div><div class="code-block-content" id="${codeId}">${escapedCode}</div></div>`;
-            
+
             codeBlocks.push(blockHtml);
             return placeholder;
         });
     }
 }
 
-// Initialize the application
+
 let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
