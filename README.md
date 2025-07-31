@@ -54,6 +54,18 @@ Some of the more complex rendering features were added for convenience but are s
 
 These features are included as-is. Improvements may be made in the future.
 
+## Example of UI Usage
+      
+<div align="center">
+  <table border="0">
+    <tr>
+      <td>
+        <img src="https://github.com/user-attachments/assets/693a6996-342d-49d8-9ccd-951253a6504f" alt="UI Usage Example" width="100%">
+      </td>
+    </tr>
+  </table>
+</div>
+    
 ## Contributing
 
 If you want to fix something or add a feature, feel free to do so. Since there is no build process, you can edit the `.js` and `.css` files directly and just refresh the page in your browser to see the changes.
