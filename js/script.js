@@ -162,7 +162,10 @@ class ChatGPTUI {
 
         document.addEventListener('paste', (e) => this.handlePaste(e));
         window.addEventListener('beforeunload', () => this.performAutoSave());
-
+        
+        this.mainContent.addEventListener('dragover', (e) => this.handleDragOver(e));
+        this.mainContent.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+        this.mainContent.addEventListener('drop', (e) => this.handleDrop(e));
 
         setInterval(() => {
             if (this.messages.length > 0) {
@@ -621,6 +624,43 @@ class ChatGPTUI {
         this.updateUploadedFilesDisplay();
     }
 
+    handleDragOver(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.mainContent.classList.add('drag-over');
+    }
+
+    handleDragLeave(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.mainContent.classList.remove('drag-over');
+    }
+
+    async handleDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.mainContent.classList.remove('drag-over');
+
+        const files = e.dataTransfer.files;
+        if (!files || files.length === 0) {
+            return;
+        }
+
+        if (!this.isMultiModalModel(this.selectedModel)) {
+            this.showTemporaryMessage('Selected model does not support file uploads', 'error');
+            return;
+        }
+
+        for (const file of files) {
+            try {
+                await this.processFile(file);
+            } catch (error) {
+                this.showTemporaryMessage(`Failed to process ${file.name}: ${error.message}`, 'error');
+            }
+        }
+
+        this.updateUploadedFilesDisplay();
+    }
 
     handleMessageKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
