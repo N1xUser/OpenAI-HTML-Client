@@ -113,6 +113,10 @@ body {
 	position: relative;
 }
 
+.main-content.drag-over {
+  border: 2px dashed var(--accent);
+  background-color: rgba(16, 163, 127, 0.1);
+}
 .sessions-section {
 	flex: 1;
 	padding: var(--space-lg);
@@ -1466,4 +1470,5 @@ body {
 
 .message.error .message-content strong {
 	color: var(--text-primary);
+
 }
