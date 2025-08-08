@@ -52,7 +52,6 @@ Some of the more complex rendering features were added for convenience but are s
 *   **Code Block Detection:** It tries to find and highlight code blocks, but this might not always work as expected, especially with nested or oddly formatted code.
 *   **LaTeX Rendering:** Support for math equations is experimental and may not render all expressions correctly.
 
-These features are included as-is. Improvements may be made in the future.
 
 ## Example of UI Usage
       
