@@ -378,7 +378,7 @@ class ChatGPTUI {
             this.modelSelect.value = this.selectedModel;
             this.updateModelInfo();
         } else {
-            const preferredModels = ['gpt-4o', 'gpt-4', 'gpt-3.5-turbo'];
+            const preferredModels = ['chatgpt-4o-latest','gpt-4o', 'gpt-4', 'gpt-3.5-turbo'];
             for (const preferred of preferredModels) {
                 if (this.availableModels.some(model => model.id === preferred)) {
                     this.modelSelect.value = preferred;
@@ -428,47 +428,50 @@ class ChatGPTUI {
             return false;
         }
 
-
-
         const exactMatchAllowlist = [
-            'chatgpt-4o-latest',
             'gpt-4o',
             'gpt-4o-mini',
-            'gpt-4.1'
+            'gpt-4.1',
+            'gpt-image-1'
         ];
         if (exactMatchAllowlist.includes(modelId)) {
             return true;
         }
 
-
-
-
         const exactMatchBlacklist = [
             'whisper-1',
             'tts-1',
-            'text-embedding-3-large'
+            'text-embedding-3-large',
+            'dall-e-3'
         ];
         if (exactMatchBlacklist.includes(modelId)) {
             return false;
         }
 
-
-
         const multiModalPrefixes = [
             'gpt-4.1-',
             'gpt-4o-2'
-
         ];
 
         return multiModalPrefixes.some(prefix => modelId.startsWith(prefix));
     }
 
+    isImageGenerationModel(modelId) {
+        if (!modelId) {
+            return false;
+        }
+        const imageModels = ['dall-e-3', 'gpt-image-1'];
+        return imageModels.includes(modelId);
+    }
+
     updateFileUploadAvailability() {
         const isMultiModal = this.isMultiModalModel(this.selectedModel);
+        const isImageGeneration = this.isImageGenerationModel(this.selectedModel);
+
         this.fileUploadBtn.disabled = !isMultiModal;
         this.imageUploadBtn.disabled = !isMultiModal;
 
-        if (!isMultiModal && this.uploadedFiles.length > 0) {
+        if ((isImageGeneration && !isMultiModal) && this.uploadedFiles.length > 0) {
             this.clearUploadedFiles();
         }
     }
@@ -689,51 +692,99 @@ class ChatGPTUI {
 
         if (!this.validateSendConditions()) return;
 
+        if (this.isImageGenerationModel(this.selectedModel)) {
+            await this.sendImageGenerationRequest(message);
+        } else {
+            const messageContent = this.createMultimodalContent(message);
 
-        const messageContent = this.createMultimodalContent(message);
+
+            let displayHtml = '';
+            if (this.uploadedFiles.length > 0) {
+                this.uploadedFiles.forEach(file => {
+                    if (file.type === 'text') {
+                        const summaryElement = this.createFileSummary(file.name, file.data);
+                        displayHtml += summaryElement.outerHTML;
+                    } else if (file.type === 'image') {
+                        displayHtml += `<img src="${file.data}" alt="${this.escapeHtml(file.name)}" style="display: block; max-height: 90px; border-radius: 8px; margin-bottom: 12px;">`;
+                    }
+                });
+            }
+            if (message.trim()) {
+                displayHtml += `<div class="user-message-text">${this.escapeHtml(message)}</div>`;
+            }
 
 
-        let displayHtml = '';
-        if (this.uploadedFiles.length > 0) {
-            this.uploadedFiles.forEach(file => {
-                if (file.type === 'text') {
-                    const summaryElement = this.createFileSummary(file.name, file.data);
-                    displayHtml += summaryElement.outerHTML;
-                } else if (file.type === 'image') {
-                    displayHtml += `<img src="${file.data}" alt="${this.escapeHtml(file.name)}" style="display: block; max-height: 90px; border-radius: 8px; margin-bottom: 12px;">`;
-                }
+            this.addMessage('user', displayHtml, true);
+            this.messages.push({
+                role: 'user',
+                content: messageContent
             });
-        }
-        if (message.trim()) {
-            displayHtml += `<div class="user-message-text">${this.escapeHtml(message)}</div>`;
-        }
 
+            this.resetMessageInput();
+            this.prepareForResponse();
 
-        this.addMessage('user', displayHtml, true);
+            try {
+                if (this.streamingEnabled) {
+                    await this.sendStreamingMessage();
+                } else {
+                    await this.sendNonStreamingMessage();
+                }
+            } catch (error) {
+
+                this.addErrorMessageToChat(error.message);
+            } finally {
+
+                this.finishResponse();
+            }
+        }
+    }
+
+    async sendImageGenerationRequest(prompt) {
+        this.addMessage('user', prompt);
         this.messages.push({
             role: 'user',
-            content: messageContent
+            content: prompt
         });
 
         this.resetMessageInput();
         this.prepareForResponse();
 
         try {
-            if (this.streamingEnabled) {
-                await this.sendStreamingMessage();
-            } else {
-                await this.sendNonStreamingMessage();
-            }
-        } catch (error) {
+            const response = await fetch('https://api.openai.com/v1/images/generations', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: this.selectedModel,
+                    prompt: prompt,
+                    n: 1,
+                    size: "1024x1024"
+                })
+            });
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error?.message || response.statusText);
+            }
+
+            const data = await response.json();
+            const imageUrl = data.data[0].url;
+            const imageMarkdown = `![Generated Image](${imageUrl})`;
+
+            this.addMessage('assistant', imageMarkdown);
+            this.messages.push({
+                role: 'assistant',
+                content: imageMarkdown
+            });
+
+        } catch (error) {
             this.addErrorMessageToChat(error.message);
         } finally {
-
             this.finishResponse();
         }
     }
-
-
 
     validateSendConditions() {
         if (!this.apiKey) {
@@ -1324,6 +1375,8 @@ class ChatGPTUI {
         if (!content) return '';
 
         let formattedContent = content;
+        
+        formattedContent = formattedContent.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" style="max-width: 100%; border-radius: 8px; margin-top: 12px;">');
 
         formattedContent = formattedContent
             .replace(/^###### (.*$)/gim, '<h6 class="markdown-heading">$1</h6>')
