@@ -831,7 +831,7 @@ class ChatGPTUI {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`API Error - Expect this kind of messages on not know models of OpenAI, this is a simple project and may not suopport it -: ${errorData.error?.message || response.statusText}`);
+            throw new Error(`Expect this kind of messages on not know models of OpenAI, this is a simple chat project and that model may not be suopported\n: ${errorData.error?.message || response.statusText}`);
         }
 
         await this.processStreamingResponse(response);
@@ -991,7 +991,7 @@ class ChatGPTUI {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`API Error - Expect this kind of messages on not know models of OpenAI, this is a simple project and may not suopport it - :${errorData.error?.message || response.statusText}`);
+            throw new Error(`Expect this kind of messages on not know models of OpenAI, this is a simple chat project and that model may not be suopported\n${errorData.error?.message || response.statusText}`);
         }
 
         const data = await response.json();
@@ -1047,7 +1047,8 @@ class ChatGPTUI {
 
         const requiresMaxCompletionTokens = this.selectedModel.startsWith('o1') ||
             this.selectedModel.startsWith('o3') ||
-            this.selectedModel.startsWith('o4');
+            this.selectedModel.startsWith('o4') ||
+            this.selectedModel.startsWith('gpt-5');
 
         if (requiresMaxCompletionTokens) {
             requestBody.max_completion_tokens = 4000;
@@ -1056,7 +1057,13 @@ class ChatGPTUI {
         }
 
 
-        if (!this.isSearchPreviewModel(this.selectedModel)) {
+        const hasTemperatureRestriction = this.selectedModel.startsWith('o1') ||
+                                          this.selectedModel.startsWith('o3') ||
+                                          this.selectedModel.startsWith('o4') ||
+                                          this.selectedModel.startsWith('gpt-5') ||
+                                          this.isSearchPreviewModel(this.selectedModel);
+
+        if (!hasTemperatureRestriction) {
             requestBody.temperature = 0.7;
         }
 
