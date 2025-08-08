@@ -831,7 +831,7 @@ class ChatGPTUI {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`Expect this kind of messages on not know models of OpenAI, this is a simple chat project and that model may not be suopported\n: ${errorData.error?.message || response.statusText}`);
+            throw new Error(`Expect this kind of messages on not know models of OpenAI, this is a simple chat project and that model may not be suopported:\n - ${errorData.error?.message || response.statusText}`);
         }
 
         await this.processStreamingResponse(response);
@@ -991,7 +991,7 @@ class ChatGPTUI {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(`Expect this kind of messages on not know models of OpenAI, this is a simple chat project and that model may not be suopported\n${errorData.error?.message || response.statusText}`);
+            throw new Error(`Expect this kind of messages on not know models of OpenAI, this is a simple chat project and that model may not be suopported:\n - ${errorData.error?.message || response.statusText}`);
         }
 
         const data = await response.json();
@@ -1679,3 +1679,4 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
+
