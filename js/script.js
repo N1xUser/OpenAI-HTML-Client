@@ -378,7 +378,7 @@ class ChatGPTUI {
             this.modelSelect.value = this.selectedModel;
             this.updateModelInfo();
         } else {
-            const preferredModels = ['chatgpt-4o-latest','gpt-4o', 'gpt-4', 'gpt-3.5-turbo'];
+            const preferredModels = ['gpt-5-chat-latest','chatgpt-4o-latest','gpt-4o', 'gpt-4', 'gpt-3.5-turbo'];
             for (const preferred of preferredModels) {
                 if (this.availableModels.some(model => model.id === preferred)) {
                     this.modelSelect.value = preferred;
@@ -1732,4 +1732,5 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
+
 
