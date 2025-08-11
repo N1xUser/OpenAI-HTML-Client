@@ -429,6 +429,7 @@ class ChatGPTUI {
         }
 
         const exactMatchAllowlist = [
+            'gpt-5-chat-latest',
             'gpt-4o',
             'gpt-4o-mini',
             'gpt-4.1',
@@ -1732,5 +1733,6 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
+
 
 
