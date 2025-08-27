@@ -426,8 +426,7 @@ class ChatGPTUI {
                 this.apiKey = savedApiKey;
                 this.apiKeyInput.value = savedApiKey;
                 this.lastTestedKey = savedApiKey;
-                this.apiKeyState = 'valid';
-                this.loadModels(); // This will test the key
+                this.loadModels();
             } else {
                 this.apiKeyState = 'empty';
             }
@@ -504,12 +503,9 @@ class ChatGPTUI {
             this.populateModelSelect();
             this.configSection.classList.add('api-key-valid');
             
-            // Mark key as valid if it wasn't already
-            if (this.apiKeyState !== 'valid') {
-                this.apiKeyState = 'valid';
-                this.lastTestedKey = this.apiKey;
-                this.updateApiKeyUI();
-            }
+            this.apiKeyState = 'valid';
+			this.lastTestedKey = this.apiKey;
+			this.updateApiKeyUI();
             
         } catch (error) {
             this.modelSelect.innerHTML = '<option value="">Failed to load models</option>';
@@ -1905,6 +1901,7 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
+
 
 
 
