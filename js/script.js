@@ -469,12 +469,7 @@ class ChatGPTUI {
     }
 
     clearModels() {
-        this.modelSelect.innerHTML = '<option value="">Enter API key to load models</option>';
-        this.availableModels = [];
-        this.updateModelInfo();
-    }
-
-    async loadModels() {
+        this.modelSelect.innerHTML = '<option value="">Enter API key to loa    async loadModels() {
         if (!this.apiKey.trim()) {
             this.clearModels();
             return;
@@ -492,7 +487,6 @@ class ChatGPTUI {
             });
 
             if (!response.ok) {
-                // If loading models fails, mark API key as invalid
                 const errorData = await response.json();
                 this.handleApiKeyError(errorData.error?.message || 'Failed to load models');
                 throw new Error(`Failed to load models: ${response.status}`);
@@ -500,20 +494,34 @@ class ChatGPTUI {
 
             const data = await response.json();
             this.availableModels = this.sortModels(data.data);
+
+            // FIX: Handle case where key is valid but no models are available.
+            if (this.availableModels.length === 0) {
+                this.handleApiKeyError('API key is valid, but no models are available for your account.');
+                return; // Exit before setting the UI to a stuck "valid" state.
+            }
+
             this.populateModelSelect();
             this.configSection.classList.add('api-key-valid');
             
+            // Mark key as valid and update UI
             this.apiKeyState = 'valid';
-			this.lastTestedKey = this.apiKey;
-			this.updateApiKeyUI();
+            this.lastTestedKey = this.apiKey;
+            this.updateApiKeyUI();
             
         } catch (error) {
+            // This block will now correctly handle network errors or invalid keys.
+            if (this.apiKeyState !== 'invalid') {
+                 this.handleApiKeyError('Failed to load models. Check the key or your connection.');
+            }
             this.modelSelect.innerHTML = '<option value="">Failed to load models</option>';
-            this.configSection.classList.remove('api-key-valid');
         } finally {
             this.refreshModelsBtn.disabled = false;
         }
-    }
+	}
+
+
+
 
     sortModels(models) {
         const chatModels = ['gpt-4', 'gpt-3.5-turbo', 'o1', 'o3', 'o4'];
@@ -1901,6 +1909,7 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
+
 
 
 
