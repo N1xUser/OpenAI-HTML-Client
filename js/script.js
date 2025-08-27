@@ -1,6 +1,8 @@
 class ChatGPTUI {
     constructor() {
+
         this.messages = [];
+
         this.apiKey = '';
         this.selectedModel = '';
         this.streamingEnabled = true;
@@ -8,14 +10,14 @@ class ChatGPTUI {
         this.currentSessionId = null;
         this.sessions = new Map();
         this.isFirstMessage = true;
+
         this.isSidebarVisible = true;
         this.currentStreamingMessage = null;
+
         this.autoSaveTimeout = null;
         this.autoSaveDelay = 2000;
+
         this.availableModels = [];
-        
-        this.apiKeyState = 'empty';
-        this.lastTestedKey = '';
 
         this.initialize();
     }
@@ -27,7 +29,6 @@ class ChatGPTUI {
         this.loadSessions();
         this.setupMobileMenu();
         this.setupSidebarResizing();
-        this.updateApiKeyUI();
     }
 
     setupSidebarResizing() {
@@ -61,12 +62,16 @@ class ChatGPTUI {
     }
 
     initializeElements() {
+
         this.appContainer = document.getElementById('appContainer');
+
+
         this.chatMessages = document.getElementById('chatMessages');
         this.messageInput = document.getElementById('messageInput');
         this.sendButton = document.getElementById('sendButton');
         this.clearButton = document.getElementById('clearButton');
         this.typingIndicator = document.getElementById('typingIndicator');
+
 
         this.apiKeyInput = document.getElementById('apiKeyInput');
         this.modelSelect = document.getElementById('modelSelect');
@@ -75,13 +80,12 @@ class ChatGPTUI {
         this.modelInfo = document.getElementById('modelInfo');
         this.mainControls = document.getElementById('mainControls');
 
-        // Create API key submit button and error message elements
-        this.createApiKeyElements();
-		
+
         this.fileInput = document.getElementById('fileInput');
         this.fileUploadBtn = document.getElementById('fileUploadBtn');
         this.imageUploadBtn = document.getElementById('imageUploadBtn');
         this.uploadedFilesContainer = document.getElementById('uploadedFiles');
+
 
         this.newChatBtn = document.getElementById('newChatBtn');
         this.sessionsList = document.getElementById('sessionsList');
@@ -89,50 +93,22 @@ class ChatGPTUI {
         this.exportSessionBtn = document.getElementById('exportSessionBtn');
         this.autoSaveIndicator = document.getElementById('autoSaveIndicator');
 
+
         this.importAllBtn = document.getElementById('importAllBtn');
         this.exportAllBtn = document.getElementById('exportAllBtn');
         this.deleteAllBtn = document.getElementById('deleteAllBtn');
         this.importFileInput = document.getElementById('importFileInput');
+
+
 
         this.mobileMenuToggle = document.getElementById('mobileMenuToggle');
         this.sidebar = document.getElementById('sidebar');
         this.sidebarOverlay = document.getElementById('sidebarOverlay');
         this.mainContent = document.getElementById('mainContent');
         this.sidebarResizer = document.getElementById('sidebarResizer');
+
         this.configSection = document.getElementById('configSection');
     }
-    createApiKeyElements() {
-        // Create submit button for API key
-        this.apiKeySubmitBtn = document.createElement('button');
-        this.apiKeySubmitBtn.className = 'api-key-submit-btn';
-        this.apiKeySubmitBtn.textContent = 'Test API Key';
-        this.apiKeySubmitBtn.addEventListener('click', () => this.testApiKey());
-
-        // Create error message container
-        this.apiKeyErrorMessage = document.createElement('div');
-        this.apiKeyErrorMessage.className = 'api-key-error-message';
-
-        // Create status indicator
-        this.apiKeyStatus = document.createElement('div');
-        this.apiKeyStatus.className = 'api-key-status';
-
-        // Insert elements after the API key input
-        const mainConfigArea = document.querySelector('.main-config-area');
-        const firstChild = mainConfigArea.firstElementChild;
-        
-        // Create wrapper for API key input and button
-        const apiKeyWrapper = document.createElement('div');
-        apiKeyWrapper.className = 'api-key-wrapper';
-        
-        // Move API key input into wrapper
-        apiKeyWrapper.appendChild(this.apiKeyInput);
-        apiKeyWrapper.appendChild(this.apiKeySubmitBtn);
-        
-        // Insert wrapper and status elements
-        mainConfigArea.insertBefore(apiKeyWrapper, firstChild.nextSibling);
-        mainConfigArea.insertBefore(this.apiKeyStatus, apiKeyWrapper.nextSibling);
-        mainConfigArea.insertBefore(this.apiKeyErrorMessage, this.apiKeyStatus.nextSibling);
-	}
 
 
     bindEvents() {
@@ -141,13 +117,7 @@ class ChatGPTUI {
         this.messageInput.addEventListener('keydown', (e) => this.handleMessageKeydown(e));
         this.messageInput.addEventListener('input', () => this.adjustTextareaHeight());
 
-        this.apiKeyInput.addEventListener('input', (e) => this.handleAPIKeyInput(e.target.value));
-        this.apiKeyInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                this.testApiKey();
-            }
-        });
+        this.apiKeyInput.addEventListener('input', (e) => this.handleAPIKeyChange(e.target.value));
         this.modelSelect.addEventListener('change', (e) => this.updateModel(e.target.value));
         this.refreshModelsBtn.addEventListener('click', () => this.loadModels());
 
@@ -156,14 +126,18 @@ class ChatGPTUI {
             e.target.closest('.streaming-toggle').classList.toggle('checked', e.target.checked);
         });
 
+
         this.newChatBtn.addEventListener('click', () => this.createNewSession());
         this.exportSessionBtn.addEventListener('click', () => this.exportCurrentSession());
         this.sessionNameInput.addEventListener('input', () => this.scheduleAutoSave());
+
 
         this.exportAllBtn.addEventListener('click', () => this.exportAllSessions());
         this.importAllBtn.addEventListener('click', () => this.importFileInput.click());
         this.importFileInput.addEventListener('change', (e) => this.handleImportAll(e));
         this.deleteAllBtn.addEventListener('click', () => this.deleteAllSessions());
+
+
 
         this.sessionsList.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.session-delete-btn');
@@ -180,9 +154,11 @@ class ChatGPTUI {
             }
         });
 
+
         this.fileUploadBtn.addEventListener('click', () => this.openFileDialog('all'));
         this.imageUploadBtn.addEventListener('click', () => this.openFileDialog('images'));
         this.fileInput.addEventListener('change', (e) => this.handleFileUpload(e));
+
 
         document.addEventListener('paste', (e) => this.handlePaste(e));
         window.addEventListener('beforeunload', () => this.performAutoSave());
@@ -198,143 +174,7 @@ class ChatGPTUI {
         }, 30000);
     }
 
-    handleAPIKeyInput(key) {
-        const trimmedKey = key.trim();
-        
-        // Clear previous error state when user starts typing
-        if (this.apiKeyState === 'invalid') {
-            this.apiKeyState = trimmedKey ? 'modified' : 'empty';
-            this.updateApiKeyUI();
-        }
-        
-        // Update state based on input
-        if (!trimmedKey) {
-            this.apiKeyState = 'empty';
-        } else if (this.apiKeyState === 'empty' || this.apiKeyState === 'valid') {
-            this.apiKeyState = trimmedKey === this.lastTestedKey ? 
-                (this.apiKeyState === 'valid' ? 'valid' : 'empty') : 'modified';
-        }
-        
-        this.updateApiKeyUI();
-    }
-    async testApiKey() {
-        const key = this.apiKeyInput.value.trim();
-        
-        if (!key) {
-            this.showApiKeyError('Please enter an API key');
-            return;
-        }
 
-        this.apiKeyState = 'testing';
-        this.updateApiKeyUI();
-
-        try {
-            const response = await fetch('https://api.openai.com/v1/models', {
-                headers: {
-                    'Authorization': `Bearer ${key}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                this.handleApiKeyError(errorData.error?.message || 'Invalid API key');
-                return;
-            }
-
-            // Success
-            this.apiKey = key;
-            this.lastTestedKey = key;
-            this.apiKeyState = 'valid';
-            this.saveSettings();
-            
-            const data = await response.json();
-            this.availableModels = this.sortModels(data.data);
-            this.populateModelSelect();
-            this.configSection.classList.add('api-key-valid');
-            
-            this.updateApiKeyUI();
-            this.showApiKeySuccess('API key validated successfully!');
-            
-        } catch (error) {
-            this.handleApiKeyError('Network error. Please check your connection and try again.');
-        }
-    }
-
-    handleApiKeyError(message) {
-        this.apiKeyState = 'invalid';
-        this.lastTestedKey = this.apiKeyInput.value.trim();
-        this.showApiKeyError(message);
-        this.clearModels();
-        this.configSection.classList.remove('api-key-valid');
-        this.updateApiKeyUI();
-    }
-
-    showApiKeyError(message) {
-        this.apiKeyErrorMessage.textContent = message;
-        this.apiKeyErrorMessage.className = 'api-key-error-message error visible';
-        
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            if (this.apiKeyErrorMessage.classList.contains('error')) {
-                this.apiKeyErrorMessage.classList.remove('visible');
-            }
-        }, 5000);
-    }
-
-    showApiKeySuccess(message) {
-        this.apiKeyErrorMessage.textContent = message;
-        this.apiKeyErrorMessage.className = 'api-key-error-message success visible';
-        
-        // Auto-hide after 3 seconds
-        setTimeout(() => {
-            this.apiKeyErrorMessage.classList.remove('visible');
-        }, 3000);
-    }
-
-    updateApiKeyUI() {
-        const key = this.apiKeyInput.value.trim();
-        
-        // Update button state and text
-        switch (this.apiKeyState) {
-            case 'empty':
-                this.apiKeySubmitBtn.textContent = 'Test API Key';
-                this.apiKeySubmitBtn.disabled = true;
-                this.apiKeyStatus.textContent = 'Enter your OpenAI API key to continue';
-                this.apiKeyStatus.className = 'api-key-status waiting';
-                this.apiKeyErrorMessage.classList.remove('visible');
-                break;
-                
-            case 'modified':
-                this.apiKeySubmitBtn.textContent = 'Test API Key';
-                this.apiKeySubmitBtn.disabled = false;
-                this.apiKeyStatus.textContent = 'Ready to test API key';
-                this.apiKeyStatus.className = 'api-key-status ready';
-                this.apiKeyErrorMessage.classList.remove('visible');
-                break;
-                
-            case 'testing':
-                this.apiKeySubmitBtn.textContent = 'Testing...';
-                this.apiKeySubmitBtn.disabled = true;
-                this.apiKeyStatus.textContent = 'Validating API key...';
-                this.apiKeyStatus.className = 'api-key-status testing';
-                break;
-                
-            case 'valid':
-                this.apiKeySubmitBtn.textContent = 'API Key Valid ✓';
-                this.apiKeySubmitBtn.disabled = true;
-                this.apiKeyStatus.textContent = 'API key validated successfully';
-                this.apiKeyStatus.className = 'api-key-status valid';
-                break;
-                
-            case 'invalid':
-                this.apiKeySubmitBtn.textContent = 'Try Again';
-                this.apiKeySubmitBtn.disabled = false;
-                this.apiKeyStatus.textContent = 'Please check your API key and try again';
-                this.apiKeyStatus.className = 'api-key-status invalid';
-                break;
-        }
-    }
     setupMobileMenu() {
         this.mobileMenuToggle.addEventListener('click', () => {
             this.sidebar.classList.toggle('show');
@@ -413,10 +253,12 @@ class ChatGPTUI {
 
     loadSettings() {
         try {
+
             const savedWidth = localStorage.getItem('chatgpt_ui_sidebar_width');
             if (savedWidth) {
                 this.appContainer.style.setProperty('--sidebar-width', savedWidth);
             }
+
 
             const savedApiKey = localStorage.getItem('chatgpt_ui_api_key');
             const savedModel = localStorage.getItem('chatgpt_ui_selected_model');
@@ -425,10 +267,7 @@ class ChatGPTUI {
             if (savedApiKey) {
                 this.apiKey = savedApiKey;
                 this.apiKeyInput.value = savedApiKey;
-                this.lastTestedKey = savedApiKey;
                 this.loadModels();
-            } else {
-                this.apiKeyState = 'empty';
             }
 
             if (savedModel) {
@@ -469,7 +308,12 @@ class ChatGPTUI {
     }
 
     clearModels() {
-        this.modelSelect.innerHTML = '<option value="">Enter API key to loa    async loadModels() {
+        this.modelSelect.innerHTML = '<option value="">Enter API key to load models</option>';
+        this.availableModels = [];
+        this.updateModelInfo();
+    }
+
+    async loadModels() {
         if (!this.apiKey.trim()) {
             this.clearModels();
             return;
@@ -487,41 +331,21 @@ class ChatGPTUI {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                this.handleApiKeyError(errorData.error?.message || 'Failed to load models');
                 throw new Error(`Failed to load models: ${response.status}`);
             }
 
             const data = await response.json();
             this.availableModels = this.sortModels(data.data);
-
-            // FIX: Handle case where key is valid but no models are available.
-            if (this.availableModels.length === 0) {
-                this.handleApiKeyError('API key is valid, but no models are available for your account.');
-                return; // Exit before setting the UI to a stuck "valid" state.
-            }
-
             this.populateModelSelect();
             this.configSection.classList.add('api-key-valid');
-            
-            // Mark key as valid and update UI
-            this.apiKeyState = 'valid';
-            this.lastTestedKey = this.apiKey;
-            this.updateApiKeyUI();
-            
         } catch (error) {
-            // This block will now correctly handle network errors or invalid keys.
-            if (this.apiKeyState !== 'invalid') {
-                 this.handleApiKeyError('Failed to load models. Check the key or your connection.');
-            }
+            this.showError(`Failed to load models: ${error.message}`);
             this.modelSelect.innerHTML = '<option value="">Failed to load models</option>';
+            this.configSection.classList.remove('api-key-valid');
         } finally {
             this.refreshModelsBtn.disabled = false;
         }
-	}
-
-
-
+    }
 
     sortModels(models) {
         const chatModels = ['gpt-4', 'gpt-3.5-turbo', 'o1', 'o3', 'o4'];
@@ -1909,9 +1733,6 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
-
-
-
 
 
 
