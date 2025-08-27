@@ -108,9 +108,6 @@ class ChatGPTUI {
         this.sidebarResizer = document.getElementById('sidebarResizer');
 
         this.configSection = document.getElementById('configSection');
-		this.submitKeyBtn = document.getElementById('submitKeyBtn');
-		this.apiKeyStatus = document.getElementById('apiKeyStatus');
-        
     }
 
 
@@ -118,8 +115,7 @@ class ChatGPTUI {
         this.sendButton.addEventListener('click', () => this.sendMessage());
         this.clearButton.addEventListener('click', () => this.clearChat());
         this.messageInput.addEventListener('keydown', (e) => this.handleMessageKeydown(e));
-        this.apiKeyInput.addEventListener('input', (e) => this.handleAPIKeyInput(e.target.value));
-		this.submitKeyBtn.addEventListener('click', () => this.submitAPIKey());
+        this.messageInput.addEventListener('input', () => this.adjustTextareaHeight());
 
         this.apiKeyInput.addEventListener('input', (e) => this.handleAPIKeyChange(e.target.value));
         this.modelSelect.addEventListener('change', (e) => this.updateModel(e.target.value));
@@ -230,27 +226,6 @@ class ChatGPTUI {
         }
     }
 
-	async handleAPIKeyChange(key) {
-    	this.apiKey = key;
-    	this.saveSettings();
-
-    	if (key.trim()) {
-        	try {
-            	await this.loadModels();
-            	this.showAPIKeyStatus('success', 'API key validated successfully!');
-            	this.submitKeyBtn.style.display = 'none';
-        	} catch (error) {
-            	this.showAPIKeyStatus('error', 'Invalid API key. Please check and try again.');
-            	this.submitKeyBtn.disabled = false;
-        	}
-    	} else {
-        	this.clearModels();
-        	this.configSection.classList.remove('api-key-valid');
-        	this.showAPIKeyStatus('waiting', 'Enter your API key above');
-    	}
-	}
-    	
-    
     closeMobileMenu(instant = false) {
         if (instant) {
             this.sidebar.style.transition = 'none';
@@ -307,41 +282,8 @@ class ChatGPTUI {
         } catch (error) {
             console.warn('Could not load settings:', error);
         }
-        if (!this.apiKey) {
-    		this.showAPIKeyStatus('waiting', 'Enter your API key above');
-        }
     }
-	handleAPIKeyInput(key) {
-        
-    	this.apiKeyStatus.className = 'api-key-status';
-    	this.apiKeyStatus.textContent = '';
-    
-    	if (key.trim()) {
-        	this.submitKeyBtn.style.display = 'block';
-        	this.submitKeyBtn.disabled = false;
-    	} else {
-        	this.submitKeyBtn.style.display = 'none';
-        	this.showAPIKeyStatus('waiting', 'Enter your API key above');
-    	}
-	}
 
-	async submitAPIKey() {
-    	const key = this.apiKeyInput.value.trim();
-    	if (!key) return;
-    
-    	this.submitKeyBtn.disabled = true;
-    	this.submitKeyBtn.textContent = 'Validating...';
-    	this.showAPIKeyStatus('', 'Checking API key...');
-    
-    	await this.handleAPIKeyChange(key);
-    
-    	this.submitKeyBtn.textContent = 'Submit Key';
-	}
-
-	showAPIKeyStatus(type, message) {
-        this.apiKeyStatus.className = `api-key-status ${type}`;
-        this.apiKeyStatus.textContent = message;
-	}
     saveSettings() {
         try {
             localStorage.setItem('chatgpt_ui_api_key', this.apiKey);
@@ -397,14 +339,9 @@ class ChatGPTUI {
             this.populateModelSelect();
             this.configSection.classList.add('api-key-valid');
         } catch (error) {
-    		this.showError(`Failed to load models: ${error.message}`);
-    		this.modelSelect.innerHTML = '<option value="">Failed to load models</option>';
-    		this.configSection.classList.remove('api-key-valid');
-    		throw error;
-		} finally {
-    		this.refreshModelsBtn.disabled = false;
-        }
-        
+            this.showError(`Failed to load models: ${error.message}`);
+            this.modelSelect.innerHTML = '<option value="">Failed to load models</option>';
+            this.configSection.classList.remove('api-key-valid');
         } finally {
             this.refreshModelsBtn.disabled = false;
         }
@@ -1796,7 +1733,6 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
-
 
 
 
