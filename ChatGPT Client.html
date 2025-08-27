@@ -59,7 +59,11 @@
 					 <span></span>
 					 </button>
 					 <div class="main-config-area">
-						<input type="password" class="api-key-input" placeholder="Enter your OpenAI API Key here..." id="apiKeyInput">
+						<div class="api-key-container">
+    <input type="password" class="api-key-input" placeholder="Enter your OpenAI API Key here..." id="apiKeyInput">
+    <button class="submit-key-btn" id="submitKeyBtn" style="display: none;">Submit Key</button>
+    <div class="api-key-status" id="apiKeyStatus"></div>
+						</div>
 						<div class="main-controls" id="mainControls">
 						   <select class="model-select" id="modelSelect">
 							  <option value="">Loading models...</option>
@@ -111,3 +115,4 @@
 	  <script src="js/script.js"></script>
    </body>
 </html>
+
