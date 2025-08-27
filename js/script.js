@@ -77,7 +77,7 @@ class ChatGPTUI {
 
         // Create API key submit button and error message elements
         this.createApiKeyElements();
-
+		
         this.fileInput = document.getElementById('fileInput');
         this.fileUploadBtn = document.getElementById('fileUploadBtn');
         this.imageUploadBtn = document.getElementById('imageUploadBtn');
@@ -132,7 +132,8 @@ class ChatGPTUI {
         mainConfigArea.insertBefore(apiKeyWrapper, firstChild.nextSibling);
         mainConfigArea.insertBefore(this.apiKeyStatus, apiKeyWrapper.nextSibling);
         mainConfigArea.insertBefore(this.apiKeyErrorMessage, this.apiKeyStatus.nextSibling);
-    }
+	}
+
 
     bindEvents() {
         this.sendButton.addEventListener('click', () => this.sendMessage());
@@ -147,7 +148,6 @@ class ChatGPTUI {
                 this.testApiKey();
             }
         });
-        
         this.modelSelect.addEventListener('change', (e) => this.updateModel(e.target.value));
         this.refreshModelsBtn.addEventListener('click', () => this.loadModels());
 
@@ -1909,6 +1909,7 @@ let chatUI;
 document.addEventListener('DOMContentLoaded', () => {
     chatUI = new ChatGPTUI();
 });
+
 
 
 
