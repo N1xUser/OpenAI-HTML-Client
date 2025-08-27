@@ -176,6 +176,130 @@ body {
 	min-width: 0;
 }
 
+/* API Key Validation Styles */
+.api-key-wrapper {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
+    width: 100%;
+    margin-bottom: var(--space-sm);
+}
+
+.api-key-wrapper .api-key-input {
+    flex: 1;
+    margin: 0;
+}
+
+.api-key-submit-btn {
+    padding: var(--space-md) var(--space-lg);
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: var(--transition);
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+.api-key-submit-btn:hover:not(:disabled) {
+    background: var(--accent-hover);
+}
+
+.api-key-submit-btn:disabled {
+    background: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+.api-key-status {
+    font-size: 13px;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-sm);
+    text-align: center;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.api-key-status.waiting {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+}
+
+.api-key-status.ready {
+    background: rgba(255, 165, 0, 0.1);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+}
+
+.api-key-status.testing {
+    background: rgba(16, 163, 127, 0.1);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    animation: pulse 2s infinite;
+}
+
+.api-key-status.valid {
+    background: rgba(35, 134, 54, 0.1);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.api-key-status.invalid {
+    background: rgba(248, 81, 73, 0.1);
+    color: var(--error);
+    border: 1px solid var(--error);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.api-key-error-message {
+    font-size: 13px;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-sm);
+    text-align: center;
+    transition: all var(--transition-slow);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+}
+
+.api-key-error-message.visible {
+    max-height: 100px;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.api-key-error-message.error {
+    background: rgba(248, 81, 73, 0.1);
+    color: var(--error);
+    border: 1px solid var(--error);
+}
+
+.api-key-error-message.success {
+    background: rgba(35, 134, 54, 0.1);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.config-section.api-key-valid .api-key-wrapper,
+.config-section.api-key-valid .api-key-status,
+.config-section.api-key-valid .api-key-error-message {
+    display: none;
+}
+
+.config-section.api-key-valid .main-controls {
+    display: flex;
+}
 
 .mobile-menu-toggle {
 	display: none;
@@ -222,6 +346,22 @@ body {
 		max-width: none;
 		margin-bottom: var(--space-sm);
 	}
+	
+	.api-key-wrapper {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .api-key-submit-btn {
+        width: 100%;
+        min-width: unset;
+    }
+    
+    .api-key-status,
+    .api-key-error-message {
+        font-size: 12px;
+        padding: var(--space-sm);
+    }
 }
 
 .mobile-menu-toggle span {
@@ -1299,6 +1439,15 @@ body {
 		height: 40px;
 		padding: var(--space-sm);
 	}
+	
+	.api-key-wrapper {
+        gap: var(--space-xs);
+    }
+    
+    .api-key-submit-btn {
+        padding: var(--space-sm) var(--space-md);
+        font-size: 13px;
+    }
 
 
 }
