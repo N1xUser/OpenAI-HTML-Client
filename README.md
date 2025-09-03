@@ -50,7 +50,7 @@ Some of the more complex rendering features were added for convenience but are s
 
 *   **Markdown Detection:** Basic Markdown like headers and bold text should work, but it can be unreliable with more complex formatting.
 *   **Code Block Detection:** It tries to find and highlight code blocks, but this might not always work as expected, especially with nested or oddly formatted code.
-*   **LaTeX Rendering:** Support for math equations is experimental and may not render all expressions correctly.
+*   **LaTeX Rendering:** Support for math equations is experimental and may not render all expressions correctly (It may depend on the model chosen, some for some reason cannot maintain the LaTeX rules and do not render).
 
 
 ## Example of UI Usage
