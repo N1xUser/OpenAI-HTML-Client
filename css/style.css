@@ -177,56 +177,57 @@ body {
 }
 
 .api-key-container {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-sm);
-    flex: 2;
-    min-width: 200px;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-sm);
+	flex: 2;
+	min-width: 200px;
 }
 
 .submit-key-btn {
-    padding: var(--space-sm) var(--space-md);
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 14px;
-    transition: var(--transition);
+	padding: var(--space-sm) var(--space-md);
+	background: var(--accent);
+	color: white;
+	border: none;
+	border-radius: var(--radius-md);
+	cursor: pointer;
+	font-size: 14px;
+	transition: var(--transition);
+	margin: 0 0 6px 0px;
 }
 
 .submit-key-btn:hover {
-    background: var(--accent-hover);
+	background: var(--accent-hover);
 }
 
 .submit-key-btn:disabled {
-    background: var(--border);
-    color: var(--text-muted);
-    cursor: not-allowed;
+	background: var(--border);
+	color: var(--text-muted);
+	cursor: not-allowed;
 }
 
 .api-key-status {
-    font-size: 12px;
-    padding: var(--space-xs);
-    border-radius: var(--radius-sm);
-    text-align: center;
+	font-size: 12px;
+	padding: var(--space-xs);
+	border-radius: var(--radius-sm);
+	text-align: center;
 }
 
 .api-key-status.waiting {
-    color: var(--text-muted);
-    background: var(--bg-tertiary);
+	color: var(--text-muted);
+	background: var(--bg-tertiary);
 }
 
 .api-key-status.error {
-    color: var(--error);
-    background: rgba(248, 81, 73, 0.1);
-    border: 1px solid var(--error);
+	color: var(--error);
+	background: rgba(248, 81, 73, 0.1);
+	border: 1px solid var(--error);
 }
 
 .api-key-status.success {
-    color: var(--success);
-    background: rgba(35, 134, 54, 0.1);
-    border: 1px solid var(--success);
+	color: var(--success);
+	background: rgba(35, 134, 54, 0.1);
+	border: 1px solid var(--success);
 }
 
 .mobile-menu-toggle {
@@ -276,20 +277,32 @@ body {
 	}
 	
 	.api-key-wrapper {
-        flex-direction: column;
-        gap: var(--space-sm);
-    }
-    
-    .api-key-submit-btn {
-        width: 100%;
-        min-width: unset;
-    }
-    
-    .api-key-status,
-    .api-key-error-message {
-        font-size: 12px;
-        padding: var(--space-sm);
-    }
+		flex-direction: column;
+		gap: var(--space-sm);
+	}
+	
+	.api-key-submit-btn {
+		width: 100%;
+		min-width: unset;
+	}
+	
+	.api-key-status,
+	.api-key-error-message {
+		font-size: 12px;
+		padding: var(--space-sm);
+	}
+	.api-key-container > div {
+		flex-direction: column !important;
+		gap: var(--space-sm) !important;
+	}
+	
+	.api-key-input {
+		width: 100% !important;
+	}
+	
+	.submit-key-btn {
+		width: 100%;
+	}
 }
 
 .mobile-menu-toggle span {
@@ -1369,13 +1382,13 @@ body {
 	}
 	
 	.api-key-wrapper {
-        gap: var(--space-xs);
-    }
-    
-    .api-key-submit-btn {
-        padding: var(--space-sm) var(--space-md);
-        font-size: 13px;
-    }
+		gap: var(--space-xs);
+	}
+	
+	.api-key-submit-btn {
+		padding: var(--space-sm) var(--space-md);
+		font-size: 13px;
+	}
 
 
 }
@@ -1469,7 +1482,7 @@ body {
 }
 
 
-.config-section.api-key-valid .api-key-input {
+.config-section.api-key-valid .api-key-container {
 	display: none;
 }
 
